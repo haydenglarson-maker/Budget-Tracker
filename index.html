@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Finance Tracker</title>
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #182230;
+      --muted: #667085;
+      --border: #d9e2ec;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #047857;
+      --warning: #b45309;
+      --danger: #b91c1c;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf5;
+      --soft-yellow: #fffbeb;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+      padding: 40px 20px;
+    }
+
+    .header-inner {
+      max-width: 1150px;
+      margin: 0 auto;
+    }
+
+    .header-inner h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      letter-spacing: -0.04em;
+    }
+
+    .header-inner p {
+      margin: 10px 0 0;
+      max-width: 650px;
+      color: #dbeafe;
+      font-size: 1.05rem;
+    }
+
+    main {
+      max-width: 1150px;
+      margin: -24px auto 60px;
+      padding: 0 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      transition: 0.2s ease;
+    }
+
+    .tab-button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .tab-section {
+      display: none;
+    }
+
+    .tab-section.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 900px) {
+      .grid.two {
+        grid-template-columns: 0.9fr 1.1fr;
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .card h2,
+    .card h3 {
+      margin-top: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .card h2 {
+      font-size: 1.45rem;
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 680px) {
+      .form-row.two {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .form-row.three {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 13px;
+      font: inherit;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .primary-button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 18px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .primary-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .secondary-button {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .danger-button {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .summary-card {
+      padding: 22px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: white;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .summary-card .amount {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-top: 4px;
+    }
+
+    .summary-card.blue {
+      background: var(--soft-blue);
+    }
+
+    .summary-card.green {
+      background: var(--soft-green);
+    }
+
+    .summary-card.yellow {
+      background: var(--soft-yellow);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 560px;
+    }
+
+    th,
+    td {
+      padding: 13px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    td.amount-cell,
+    th.amount-cell {
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .insight-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--primary);
+      padding: 18px;
+      border-radius: 14px;
+      color: #344054;
+    }
+
+    .category-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .category-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fbfdff;
+    }
+
+    .category-item strong {
+      color: var(--text);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .toolbar > div {
+      min-width: 150px;
+    }
+
+    .empty-state {
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      padding: 18px;
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 800;
+      font-size: 0.83rem;
+    }
+
+    .badge.easy {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.moderate {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge.challenging {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge.difficult {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px 20px 50px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Personal Finance Tracker</h1>
+      <p>Track your spending, review weekly and monthly totals, break expenses into categories, and build a simple savings plan.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="spending">Spending Tracker</button>
+      <button class="tab-button" data-tab="savings">Savings Plan</button>
+    </div>
+
+    <!-- Spending Tracker -->
+    <section id="spending" class="tab-section active">
+      <div class="grid two">
+        <div class="card">
+          <h2>Add Transaction</h2>
+          <p class="muted">Enter the day, amount, and category. Month and year are filled automatically, but you can change them.</p>
+
+          <form id="transactionForm">
+            <div class="form-row three">
+              <div>
+                <label for="day">Day</label>
+                <input type="number" id="day" min="1" max="31" required />
+              </div>
+
+              <div>
+                <label for="month">Month</label>
+                <select id="month" required>
+                  <option value="0">January</option>
+                  <option value="1">February</option>
+                  <option value="2">March</option>
+                  <option value="3">April</option>
+                  <option value="4">May</option>
+                  <option value="5">June</option>
+                  <option value="6">July</option>
+                  <option value="7">August</option>
+                  <option value="8">September</option>
+                  <option value="9">October</option>
+                  <option value="10">November</option>
+                  <option value="11">December</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="year">Year</label>
+                <input type="number" id="year" min="2000" max="2100" required />
+              </div>
+            </div>
+
+            <div class="form-row two">
+              <div>
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" min="0.01" step="0.01" placeholder="Example: 12.50" required />
+              </div>
+
+              <div>
+                <label for="category">Category</label>
+                <select id="category" required>
+                  <option value="">Choose a category</option>
+                  <option>Food</option>
+                  <option>Groceries</option>
+                  <option>Rent</option>
+                  <option>Transportation</option>
+                  <option>Gas</option>
+                  <option>Entertainment</option>
+                  <option>Subscriptions</option>
+                  <option>School</option>
+                  <option>Giving/Donations</option>
+                  <option>Shopping</option>
+                  <option>Health</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="primary-button" type="submit">Add Transaction</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Spending Insights</h2>
+          <div id="spendingInsight" class="insight-box">
+            Add your first transaction to see insights.
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 20px;"></div>
+
+      <div class="card">
+        <h2>View Spending</h2>
+
+        <div class="toolbar">
+          <div>
+            <label for="filterMonth">Month</label>
+            <select id="filterMonth">
+              <option value="0">January</option>
+              <option value="1">February</option>
+              <option value="2">March</option>
+              <option value="3">April</option>
+              <option value="4">May</option>
+              <option value="5">June</option>
+              <option value="6">July</option>
+              <option value="7">August</option>
+              <option value="8">September</option>
+              <option value="9">October</option>
+              <option value="10">November</option>
+              <option value="11">December</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filterYear">Year</label>
+            <input type="number" id="filterYear" min="2000" max="2100" />
+          </div>
+
+          <button class="secondary-button" id="clearAllBtn" type="button">Clear All Transactions</button>
+        </div>
+
+        <div class="grid three">
+          <div class="summary-card blue">
+            <div class="label">Total Spending Overall</div>
+            <div class="amount" id="overallTotal">$0.00</div>
+          </div>
+
+          <div class="summary-card green">
+            <div class="label">Selected Month Spending</div>
+            <div class="amount" id="monthlyTotal">$0.00</div>
+          </div>
+
+          <div class="summary-card yellow">
+            <div class="label">Current Week Spending</div>
+            <div class="amount" id="weeklyTotal">$0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 20px;"></div>
+
+      <div class="grid three">
+        <div class="card">
+          <h3>Overall by Category</h3>
+          <div id="overallCategories" class="category-list"></div>
+        </div>
+
+        <div class="card">
+          <h3>Selected Month by Category</h3>
+          <div id="monthlyCategories" class="category-list"></div>
+        </div>
+
+        <div class="card">
+          <h3>Current Week by Category</h3>
+          <div id="weeklyCategories" class="category-list"></div>
+        </div>
+      </div>
+
+      <div style="height: 20px;"></div>
+
+      <div class="card">
+        <h2>Transaction History</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th class="amount-cell">Amount</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="transactionTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Savings Plan -->
+    <section id="savings" class="tab-section">
+      <div class="grid two">
+        <div class="card">
+          <h2>Create Savings Plan</h2>
+          <p class="muted">Enter your goal, time frame, and income. The site will calculate how much to set aside each month and week.</p>
+
+          <form id="savingsForm">
+            <div>
+              <label for="savingsGoal">How much do you want to save?</label>
+              <input type="number" id="savingsGoal" min="1" step="0.01" placeholder="Example: 2000" required />
+            </div>
+
+            <div>
+              <label for="timeFrame">Time frame in months</label>
+              <input type="number" id="timeFrame" min="1" step="1" placeholder="Example: 6" required />
+            </div>
+
+            <div>
+              <label for="monthlyIncome">Monthly income</label>
+              <input type="number" id="monthlyIncome" min="1" step="0.01" placeholder="Example: 2500" required />
+            </div>
+
+            <button class="primary-button" type="submit">Build Savings Plan</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Savings Plan Results</h2>
+
+          <div class="grid">
+            <div class="summary-card green">
+              <div class="label">Monthly Savings Needed</div>
+              <div class="amount" id="monthlySavings">$0.00</div>
+            </div>
+
+            <div class="summary-card blue">
+              <div class="label">Weekly Savings Needed</div>
+              <div class="amount" id="weeklySavings">$0.00</div>
+            </div>
+
+            <div class="summary-card yellow">
+              <div class="label">Income Left After Monthly Savings</div>
+              <div class="amount" id="incomeLeft">$0.00</div>
+            </div>
+          </div>
+
+          <div style="height: 18px;"></div>
+
+          <p>
+            <strong>Difficulty:</strong>
+            <span id="difficultyBadge" class="badge moderate">Waiting for plan</span>
+          </p>
+
+          <div id="savingsInsight" class="insight-box">
+            Enter a savings goal to see your plan.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built for personal budgeting. Data is stored only in your browser using localStorage.
+  </footer>
+
+  <script>
+    const STORAGE_KEY = "personalFinanceTransactions";
+    const SAVINGS_KEY = "personalFinanceSavingsPlan";
+
+    const currency = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD"
+    });
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    let transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const today = new Date();
+
+    const dayInput = document.getElementById("day");
+    const monthInput = document.getElementById("month");
+    const yearInput = document.getElementById("year");
+    const filterMonthInput = document.getElementById("filterMonth");
+    const filterYearInput = document.getElementById("filterYear");
+
+    dayInput.value = today.getDate();
+    monthInput.value = today.getMonth();
+    yearInput.value = today.getFullYear();
+    filterMonthInput.value = today.getMonth();
+    filterYearInput.value = today.getFullYear();
+
+    document.querySelectorAll(".tab-button").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".tab-section").forEach(section => section.classList.remove("active"));
+
+        button.classList.add("active");
+        document.getElementById(button.dataset.tab).classList.add("active");
+      });
+    });
+
+    document.getElementById("transactionForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const day = Number(dayInput.value);
+      const month = Number(monthInput.value);
+      const year = Number(yearInput.value);
+      const amount = Number(document.getElementById("amount").value);
+      const category = document.getElementById("category").value;
+
+      const transactionDate = new Date(year, month, day);
+
+      if (Number.isNaN(transactionDate.getTime()) || transactionDate.getDate() !== day) {
+        alert("Please enter a valid date.");
+        return;
+      }
+
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      const transaction = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        date: transactionDate.toISOString(),
+        amount,
+        category
+      };
+
+      transactions.push(transaction);
+      saveTransactions();
+
+      document.getElementById("amount").value = "";
+      document.getElementById("category").value = "";
+
+      renderApp();
+    });
+
+    filterMonthInput.addEventListener("change", renderApp);
+    filterYearInput.addEventListener("input", renderApp);
+
+    document.getElementById("clearAllBtn").addEventListener("click", () => {
+      const confirmed = confirm("Are you sure you want to delete all transactions?");
+      if (!confirmed) return;
+
+      transactions = [];
+      saveTransactions();
+      renderApp();
+    });
+
+    function saveTransactions() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    }
+
+    function deleteTransaction(id) {
+      transactions = transactions.filter(transaction => transaction.id !== id);
+      saveTransactions();
+      renderApp();
+    }
+
+    function getTransactionDate(transaction) {
+      return new Date(transaction.date);
+    }
+
+    function getSelectedMonthTransactions() {
+      const selectedMonth = Number(filterMonthInput.value);
+      const selectedYear = Number(filterYearInput.value);
+
+      return transactions.filter(transaction => {
+        const date = getTransactionDate(transaction);
+        return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear;
+      });
+    }
+
+    function getCurrentWeekTransactions() {
+      const now = new Date();
+      const start = new Date(now);
+      const day = start.getDay();
+
+      start.setDate(start.getDate() - day);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+
+      return transactions.filter(transaction => {
+        const date = getTransactionDate(transaction);
+        return date >= start && date < end;
+      });
+    }
+
+    function sumTransactions(list) {
+      return list.reduce((total, transaction) => total + Number(transaction.amount), 0);
+    }
+
+    function categoryTotals(list) {
+      return list.reduce((totals, transaction) => {
+        totals[transaction.category] = (totals[transaction.category] || 0) + Number(transaction.amount);
+        return totals;
+      }, {});
+    }
+
+    function highestCategory(list) {
+      const totals = categoryTotals(list);
+      const entries = Object.entries(totals);
+
+      if (entries.length === 0) return null;
+
+      entries.sort((a, b) => b[1] - a[1]);
+      return {
+        category: entries[0][0],
+        amount: entries[0][1]
+      };
+    }
+
+    function renderCategoryList(elementId, list) {
+      const container = document.getElementById(elementId);
+      const totals = Object.entries(categoryTotals(list)).sort((a, b) => b[1] - a[1]);
+
+      if (totals.length === 0) {
+        container.innerHTML = `<div class="empty-state">No spending in this section yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = totals.map(([category, amount]) => `
+        <div class="category-item">
+          <strong>${category}</strong>
+          <span>${currency.format(amount)}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderTransactions() {
+      const table = document.getElementById("transactionTable");
+
+      if (transactions.length === 0) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="4">
+              <div class="empty-state">No transactions yet. Add your first one above.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      table.innerHTML = sorted.map(transaction => {
+        const date = getTransactionDate(transaction);
+        const dateLabel = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
+        return `
+          <tr>
+            <td>${dateLabel}</td>
+            <td>${transaction.category}</td>
+            <td class="amount-cell">${currency.format(transaction.amount)}</td>
+            <td>
+              <button class="danger-button" onclick="deleteTransaction('${transaction.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderSpendingInsight(overallTotal, monthlyTotal, weeklyTotal, selectedMonthTransactions, weeklyTransactions) {
+      const insight = document.getElementById("spendingInsight");
+
+      if (transactions.length === 0) {
+        insight.textContent = "Add your first transaction to see insights.";
+        return;
+      }
+
+      const monthlyHigh = highestCategory(selectedMonthTransactions);
+      const weeklyHigh = highestCategory(weeklyTransactions);
+
+      const selectedMonthName = monthNames[Number(filterMonthInput.value)];
+      const selectedYear = Number(filterYearInput.value);
+
+      let message = `You have spent ${currency.format(overallTotal)} total. `;
+
+      message += `For ${selectedMonthName} ${selectedYear}, you have spent ${currency.format(monthlyTotal)}. `;
+
+      message += `So far this week, you have spent ${currency.format(weeklyTotal)}. `;
+
+      if (monthlyHigh) {
+        message += `Your highest category for the selected month is ${monthlyHigh.category} at ${currency.format(monthlyHigh.amount)}. `;
+      }
+
+      if (weeklyHigh) {
+        message += `Your highest category this week is ${weeklyHigh.category} at ${currency.format(weeklyHigh.amount)}. `;
+      }
+
+      if (monthlyHigh && weeklyHigh) {
+        if (monthlyHigh.category === weeklyHigh.category) {
+          message += `${monthlyHigh.category} is leading both monthly and weekly spending, so it may be the best category to watch first.`;
+        } else {
+          message += `To lower spending, compare your monthly category leader with this week's category leader and decide which one is easiest to reduce.`;
+        }
+      }
+
+      insight.textContent = message;
+    }
+
+    function renderApp() {
+      const selectedMonthTransactions = getSelectedMonthTransactions();
+      const weeklyTransactions = getCurrentWeekTransactions();
+
+      const overallTotal = sumTransactions(transactions);
+      const monthlyTotal = sumTransactions(selectedMonthTransactions);
+      const weeklyTotal = sumTransactions(weeklyTransactions);
+
+      document.getElementById("overallTotal").textContent = currency.format(overallTotal);
+      document.getElementById("monthlyTotal").textContent = currency.format(monthlyTotal);
+      document.getElementById("weeklyTotal").textContent = currency.format(weeklyTotal);
+
+      renderCategoryList("overallCategories", transactions);
+      renderCategoryList("monthlyCategories", selectedMonthTransactions);
+      renderCategoryList("weeklyCategories", weeklyTransactions);
+      renderTransactions();
+      renderSpendingInsight(overallTotal, monthlyTotal, weeklyTotal, selectedMonthTransactions, weeklyTransactions);
+    }
+
+    document.getElementById("savingsForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const goal = Number(document.getElementById("savingsGoal").value);
+      const months = Number(document.getElementById("timeFrame").value);
+      const income = Number(document.getElementById("monthlyIncome").value);
+
+      if (goal <= 0 || months <= 0 || income <= 0) {
+        alert("Please enter valid savings plan numbers.");
+        return;
+      }
+
+      const plan = { goal, months, income };
+      localStorage.setItem(SAVINGS_KEY, JSON.stringify(plan));
+
+      renderSavingsPlan(plan);
+    });
+
+    function renderSavingsPlan(plan) {
+      if (!plan) return;
+
+      const monthlyNeeded = plan.goal / plan.months;
+      const weeklyNeeded = monthlyNeeded / 4.333;
+      const percentOfIncome = (monthlyNeeded / plan.income) * 100;
+      const incomeLeft = plan.income - monthlyNeeded;
+
+      document.getElementById("monthlySavings").textContent = currency.format(monthlyNeeded);
+      document.getElementById("weeklySavings").textContent = currency.format(weeklyNeeded);
+      document.getElementById("incomeLeft").textContent = currency.format(incomeLeft);
+
+      const badge = document.getElementById("difficultyBadge");
+      let difficulty = "";
+      let difficultyClass = "";
+
+      if (percentOfIncome <= 10) {
+        difficulty = "Easy";
+        difficultyClass = "easy";
+      } else if (percentOfIncome <= 20) {
+        difficulty = "Moderate";
+        difficultyClass = "moderate";
+      } else if (percentOfIncome <= 35) {
+        difficulty = "Challenging";
+        difficultyClass = "challenging";
+      } else {
+        difficulty = "Very Difficult";
+        difficultyClass = "difficult";
+      }
+
+      badge.className = `badge ${difficultyClass}`;
+      badge.textContent = `${difficulty} — ${percentOfIncome.toFixed(1)}% of income`;
+
+      const insight = document.getElementById("savingsInsight");
+
+      let message = `To save ${currency.format(plan.goal)} in ${plan.months} month${plan.months === 1 ? "" : "s"}, you should set aside ${currency.format(monthlyNeeded)} per month, or about ${currency.format(weeklyNeeded)} per week. `;
+
+      message += `That is ${percentOfIncome.toFixed(1)}% of your monthly income. `;
+
+      if (incomeLeft >= 0) {
+        message += `After saving, you would have about ${currency.format(incomeLeft)} left each month. `;
+      } else {
+        message += `This plan is higher than your monthly income, so you may need to extend the time frame or lower the goal. `;
+      }
+
+      if (difficulty === "Easy") {
+        message += "This goal looks very manageable based on your income.";
+      } else if (difficulty === "Moderate") {
+        message += "This goal looks realistic, but you will need to stay consistent.";
+      } else if (difficulty === "Challenging") {
+        message += "This goal may be possible, but it will require careful control of spending.";
+      } else {
+        message += "This goal may be difficult unless you increase the time frame, increase income, or reduce spending.";
+      }
+
+      insight.textContent = message;
+    }
+
+    function loadSavingsPlan() {
+      const savedPlan = JSON.parse(localStorage.getItem(SAVINGS_KEY));
+
+      if (!savedPlan) return;
+
+      document.getElementById("savingsGoal").value = savedPlan.goal;
+      document.getElementById("timeFrame").value = savedPlan.months;
+      document.getElementById("monthlyIncome").value = savedPlan.income;
+
+      renderSavingsPlan(savedPlan);
+    }
+
+    renderApp();
+    loadSavingsPlan();
+  </script>
+</body>
+</html>
