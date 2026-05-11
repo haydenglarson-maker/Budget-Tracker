@@ -33,24 +33,27 @@ const currency = new Intl.NumberFormat("en-US", {
 let transactions = loadFromStorage(STORAGE_KEYS.transactions, []);
 let budgets = loadFromStorage(STORAGE_KEYS.budgets, {});
 let savingsPlan = loadFromStorage(STORAGE_KEYS.savings, null);
-let categoryChart = null;
 
 const today = new Date();
 
 document.addEventListener("DOMContentLoaded", () => {
   setupTheme();
   setupMonthDropdowns();
-  setupDefaults();
+  setupDefaultDates();
+  setupSavedSavingsPlan();
   setupTabs();
   setupSettings();
   setupForms();
   setupFilters();
+  setupTableActions();
+  setupBudgetActions();
   renderApp();
 });
 
 function loadFromStorage(key, fallback) {
   try {
-    return JSON.parse(localStorage.getItem(key)) || fallback;
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
   } catch {
     return fallback;
   }
@@ -81,34 +84,38 @@ function setupMonthDropdowns() {
   });
 }
 
-function setupDefaults() {
+function setupDefaultDates() {
   document.getElementById("day").value = today.getDate();
   document.getElementById("month").value = today.getMonth();
   document.getElementById("year").value = today.getFullYear();
 
   document.getElementById("filterMonth").value = today.getMonth();
   document.getElementById("filterYear").value = today.getFullYear();
+}
 
-  if (savingsPlan) {
-    document.getElementById("savingsGoal").value = savingsPlan.goal;
-    document.getElementById("timeFrame").value = savingsPlan.months;
-    document.getElementById("monthlyIncome").value = savingsPlan.income;
-  }
+function setupSavedSavingsPlan() {
+  if (!savingsPlan) return;
+
+  document.getElementById("savingsGoal").value = savingsPlan.goal;
+  document.getElementById("timeFrame").value = savingsPlan.months;
+  document.getElementById("monthlyIncome").value = savingsPlan.income;
 }
 
 function setupTabs() {
   document.querySelectorAll(".tab-button").forEach(button => {
     button.addEventListener("click", () => {
-      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
-      document.querySelectorAll(".tab-section").forEach(section => section.classList.remove("active"));
-
-      button.classList.add("active");
-      document.getElementById(button.dataset.tab).classList.add("active");
-
-      if (button.dataset.tab === "dashboard") {
-        renderChart();
-      }
+      switchTab(button.dataset.tab);
     });
+  });
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-button").forEach(button => {
+    button.classList.toggle("active", button.dataset.tab === tabId);
+  });
+
+  document.querySelectorAll(".tab-section").forEach(section => {
+    section.classList.toggle("active", section.id === tabId);
   });
 }
 
@@ -122,11 +129,9 @@ function setupSettings() {
 
   document.getElementById("themeToggle").addEventListener("click", () => {
     document.body.classList.toggle("dark");
-    localStorage.setItem(
-      STORAGE_KEYS.theme,
-      document.body.classList.contains("dark") ? "dark" : "light"
-    );
-    renderChart();
+
+    const theme = document.body.classList.contains("dark") ? "dark" : "light";
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
   });
 
   document.getElementById("exportCsvButton").addEventListener("click", exportCsv);
@@ -140,12 +145,14 @@ function setupSettings() {
 
 function setupForms() {
   document.getElementById("transactionForm").addEventListener("submit", saveTransaction);
-  document.getElementById("cancelEditButton").addEventListener("click", resetTransactionForm);
   document.getElementById("budgetForm").addEventListener("submit", saveBudget);
   document.getElementById("savingsForm").addEventListener("submit", saveSavingsPlan);
 
+  document.getElementById("cancelEditButton").addEventListener("click", resetTransactionForm);
+
   document.getElementById("clearAllButton").addEventListener("click", () => {
-    if (!confirm("Are you sure you want to delete all transactions?")) return;
+    const confirmed = confirm("Are you sure you want to delete all transactions?");
+    if (!confirmed) return;
 
     transactions = [];
     saveToStorage(STORAGE_KEYS.transactions, transactions);
@@ -163,6 +170,34 @@ function setupFilters() {
     document.getElementById("searchInput").value = "";
     document.getElementById("categoryFilter").value = "";
     renderTransactions();
+  });
+}
+
+function setupTableActions() {
+  document.getElementById("transactionTable").addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button) return;
+
+    const id = button.dataset.id;
+
+    if (button.dataset.action === "edit") {
+      editTransaction(id);
+    }
+
+    if (button.dataset.action === "delete") {
+      deleteTransaction(id);
+    }
+  });
+}
+
+function setupBudgetActions() {
+  document.getElementById("budgetList").addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button) return;
+
+    if (button.dataset.action === "delete-budget") {
+      deleteBudget(button.dataset.category);
+    }
   });
 }
 
@@ -205,7 +240,9 @@ function saveTransaction(event) {
   };
 
   if (editingId) {
-    transactions = transactions.map(item => item.id === editingId ? transaction : item);
+    transactions = transactions.map(item => {
+      return item.id === editingId ? transaction : item;
+    });
   } else {
     transactions.push(transaction);
   }
@@ -258,7 +295,8 @@ function editTransaction(id) {
 }
 
 function deleteTransaction(id) {
-  if (!confirm("Delete this transaction?")) return;
+  const confirmed = confirm("Delete this transaction?");
+  if (!confirmed) return;
 
   transactions = transactions.filter(item => item.id !== id);
   saveToStorage(STORAGE_KEYS.transactions, transactions);
@@ -284,7 +322,8 @@ function saveBudget(event) {
 }
 
 function deleteBudget(category) {
-  if (!confirm(`Delete the budget for ${category}?`)) return;
+  const confirmed = confirm(`Delete the budget for ${category}?`);
+  if (!confirmed) return;
 
   delete budgets[category];
   saveToStorage(STORAGE_KEYS.budgets, budgets);
@@ -348,6 +387,7 @@ function categoryTotals(list) {
 
 function highestCategory(list) {
   const entries = Object.entries(categoryTotals(list)).sort((a, b) => b[1] - a[1]);
+
   if (!entries.length) return null;
 
   return {
@@ -361,10 +401,10 @@ function renderApp() {
   renderCategoryFilter();
   renderSummary();
   renderCategoryLists();
+  renderCategoryChart();
   renderTransactions();
   renderBudgets();
   renderSavings();
-  renderChart();
 }
 
 function renderSummary() {
@@ -380,7 +420,8 @@ function renderSummary() {
   document.getElementById("weeklyTotal").textContent = currency.format(weeklyTotal);
 
   const income = savingsPlan ? Number(savingsPlan.income) : 0;
-  document.getElementById("incomeAfterSpending").textContent = income
+
+  document.getElementById("incomeLeftAfterSpending").textContent = income
     ? currency.format(income - monthlyTotal)
     : "$0.00";
 
@@ -418,13 +459,13 @@ function renderSpendingInsight(monthlyTransactions, weeklyTransactions) {
   }
 
   if (savingsPlan) {
-    const incomeLeftAfterSpending = savingsPlan.income - monthlyTotal;
     const monthlySavingsNeeded = savingsPlan.goal / savingsPlan.months;
+    const moneyLeft = savingsPlan.income - monthlyTotal;
 
-    if (incomeLeftAfterSpending >= monthlySavingsNeeded) {
-      message += `Based on your income and selected-month spending, your savings plan looks possible right now.`;
+    if (moneyLeft >= monthlySavingsNeeded) {
+      message += "Based on your income and selected-month spending, your savings goal looks possible right now.";
     } else {
-      message += `Your current spending may make your savings goal difficult unless you reduce expenses or extend your time frame.`;
+      message += "Your current spending may make your savings goal difficult unless you reduce expenses or extend your time frame.";
     }
   }
 
@@ -440,15 +481,16 @@ function renderCategoryOptions() {
 }
 
 function renderCategoryFilter() {
-  const selected = document.getElementById("categoryFilter").value;
+  const categoryFilter = document.getElementById("categoryFilter");
+  const selectedValue = categoryFilter.value;
   const categories = getAllCategories();
 
-  document.getElementById("categoryFilter").innerHTML = `
+  categoryFilter.innerHTML = `
     <option value="">All Categories</option>
     ${categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("")}
   `;
 
-  document.getElementById("categoryFilter").value = selected;
+  categoryFilter.value = selectedValue;
 }
 
 function getAllCategories() {
@@ -477,12 +519,41 @@ function renderCategoryList(elementId, list) {
 
   container.innerHTML = entries.map(([category, amount]) => `
     <div class="list-item">
-      <div class="list-item-row">
+      <div class="list-row">
         <strong>${escapeHtml(category)}</strong>
         <span>${currency.format(amount)}</span>
       </div>
     </div>
   `).join("");
+}
+
+function renderCategoryChart() {
+  const container = document.getElementById("categoryChart");
+  const totals = categoryTotals(getSelectedMonthTransactions());
+  const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+  if (!entries.length) {
+    container.innerHTML = `<div class="empty-state">No monthly spending to chart yet.</div>`;
+    return;
+  }
+
+  const maxAmount = Math.max(...entries.map(entry => entry[1]));
+
+  container.innerHTML = entries.map(([category, amount]) => {
+    const percent = maxAmount ? (amount / maxAmount) * 100 : 0;
+
+    return `
+      <div class="chart-item">
+        <div class="chart-label">
+          <span>${escapeHtml(category)}</span>
+          <strong>${currency.format(amount)}</strong>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${percent}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderTransactions() {
@@ -532,8 +603,8 @@ function renderTransactions() {
         <td class="right">${currency.format(transaction.amount)}</td>
         <td>
           <div class="table-actions">
-            <button class="small-button" type="button" onclick="editTransaction('${transaction.id}')">Edit</button>
-            <button class="small-button" type="button" onclick="deleteTransaction('${transaction.id}')">Delete</button>
+            <button class="small-button" type="button" data-action="edit" data-id="${transaction.id}">Edit</button>
+            <button class="small-button" type="button" data-action="delete" data-id="${transaction.id}">Delete</button>
           </div>
         </td>
       </tr>
@@ -543,18 +614,18 @@ function renderTransactions() {
 
 function renderBudgets() {
   const budgetList = document.getElementById("budgetList");
-  const budgetProgressList = document.getElementById("budgetProgressList");
+  const dashboardBudgetProgress = document.getElementById("dashboardBudgetProgress");
   const monthlyTotals = categoryTotals(getSelectedMonthTransactions());
-  const budgetEntries = Object.entries(budgets).sort((a, b) => a[0].localeCompare(b[0]));
+  const entries = Object.entries(budgets).sort((a, b) => a[0].localeCompare(b[0]));
 
-  if (!budgetEntries.length) {
+  if (!entries.length) {
     budgetList.innerHTML = `<div class="empty-state">No budgets yet.</div>`;
-    budgetProgressList.innerHTML = `<div class="empty-state">Add budgets to track progress.</div>`;
-    document.getElementById("budgetInsight").textContent = "Add a budget to see whether you are on track.";
+    dashboardBudgetProgress.innerHTML = `<div class="empty-state">Add budgets to track progress.</div>`;
+    document.getElementById("budgetInsight").textContent = "Add budgets to see whether you are on track.";
     return;
   }
 
-  const budgetHtml = budgetEntries.map(([category, budget]) => {
+  const html = entries.map(([category, budget]) => {
     const spent = monthlyTotals[category] || 0;
     const percent = budget > 0 ? (spent / budget) * 100 : 0;
     const remaining = budget - spent;
@@ -562,12 +633,12 @@ function renderBudgets() {
 
     return `
       <div class="list-item">
-        <div class="list-item-row">
+        <div class="list-row">
           <strong>${escapeHtml(category)}</strong>
-          <button class="small-button" type="button" onclick="deleteBudget('${escapeAttribute(category)}')">Delete</button>
+          <button class="small-button" type="button" data-action="delete-budget" data-category="${escapeHtml(category)}">Delete</button>
         </div>
 
-        <div class="list-item-row">
+        <div class="list-row">
           <span>Spent ${currency.format(spent)} of ${currency.format(budget)}</span>
           <strong>${Math.round(percent)}%</strong>
         </div>
@@ -581,10 +652,10 @@ function renderBudgets() {
     `;
   }).join("");
 
-  budgetList.innerHTML = budgetHtml;
-  budgetProgressList.innerHTML = budgetHtml;
+  budgetList.innerHTML = html;
+  dashboardBudgetProgress.innerHTML = html;
 
-  renderBudgetInsight(budgetEntries, monthlyTotals);
+  renderBudgetInsight(entries, monthlyTotals);
 }
 
 function renderBudgetInsight(budgetEntries, monthlyTotals) {
@@ -629,12 +700,12 @@ function renderSavings() {
 
   const monthlyNeeded = savingsPlan.goal / savingsPlan.months;
   const weeklyNeeded = monthlyNeeded / 4.333;
-  const incomeLeft = savingsPlan.income - monthlyNeeded;
+  const incomeAfterSavings = savingsPlan.income - monthlyNeeded;
   const percentOfIncome = (monthlyNeeded / savingsPlan.income) * 100;
 
   document.getElementById("monthlySavings").textContent = currency.format(monthlyNeeded);
   document.getElementById("weeklySavings").textContent = currency.format(weeklyNeeded);
-  document.getElementById("incomeLeft").textContent = currency.format(incomeLeft);
+  document.getElementById("incomeAfterSavings").textContent = currency.format(incomeAfterSavings);
 
   const badge = document.getElementById("difficultyBadge");
 
@@ -659,65 +730,21 @@ function renderSavings() {
   const moneyLeftAfterSpending = savingsPlan.income - monthlySpending;
 
   let message = `To save ${currency.format(savingsPlan.goal)} in ${savingsPlan.months} month${savingsPlan.months === 1 ? "" : "s"}, set aside ${currency.format(monthlyNeeded)} per month or about ${currency.format(weeklyNeeded)} per week. `;
-
   message += `That equals ${percentOfIncome.toFixed(1)}% of your monthly income. `;
 
   if (monthlySpending > 0) {
     message += `Based on selected-month spending, you have about ${currency.format(moneyLeftAfterSpending)} left after expenses. `;
 
     if (moneyLeftAfterSpending >= monthlyNeeded) {
-      message += `Your savings goal currently looks possible if your spending stays similar.`;
+      message += "Your savings goal currently looks possible if your spending stays similar.";
     } else {
-      message += `Your savings goal may be difficult unless you reduce spending, increase income, or extend the time frame.`;
+      message += "Your savings goal may be difficult unless you reduce spending, increase income, or extend the time frame.";
     }
   } else {
-    message += `Add spending transactions to compare this plan against your real spending.`;
+    message += "Add spending transactions to compare this plan against your real spending.";
   }
 
   document.getElementById("savingsInsight").textContent = message;
-}
-
-function renderChart() {
-  const canvas = document.getElementById("categoryChart");
-  if (!canvas || typeof Chart === "undefined") return;
-
-  const totals = categoryTotals(getSelectedMonthTransactions());
-  const labels = Object.keys(totals);
-  const data = Object.values(totals);
-
-  if (categoryChart) {
-    categoryChart.destroy();
-  }
-
-  if (!labels.length) {
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    return;
-  }
-
-  categoryChart = new Chart(canvas, {
-    type: "doughnut",
-    data: {
-      labels,
-      datasets: [
-        {
-          data,
-          borderWidth: 2
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: {
-            color: getComputedStyle(document.body).getPropertyValue("--text")
-          }
-        }
-      }
-    }
-  });
 }
 
 function exportCsv() {
@@ -730,10 +757,10 @@ function exportCsv() {
 
   const rows = transactions.map(transaction => {
     const date = new Date(transaction.date);
-    const dateValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
     return [
-      dateValue,
+      formattedDate,
       transaction.amount,
       transaction.category,
       transaction.merchant || "",
@@ -760,8 +787,7 @@ function importCsv(event) {
   const reader = new FileReader();
 
   reader.onload = () => {
-    const csv = reader.result;
-    const imported = parseCsv(csv);
+    const imported = parseCsv(String(reader.result || ""));
 
     if (!imported.length) {
       alert("No valid transactions were found in the CSV.");
@@ -780,7 +806,8 @@ function importCsv(event) {
 }
 
 function parseCsv(csv) {
-  const lines = csv.split(/\r?\n/).filter(Boolean);
+  const lines = csv.split(/\r?\n/).filter(line => line.trim());
+
   if (lines.length < 2) return [];
 
   const headers = splitCsvLine(lines[0]).map(header => header.trim().toLowerCase());
@@ -793,16 +820,16 @@ function parseCsv(csv) {
       row[header] = values[index] || "";
     });
 
-    const parsedDate = new Date(row.date);
+    const date = new Date(row.date);
     const amount = Number(row.amount);
 
-    if (Number.isNaN(parsedDate.getTime()) || !amount || amount <= 0 || !row.category) {
+    if (Number.isNaN(date.getTime()) || !amount || amount <= 0 || !row.category) {
       return null;
     }
 
     return {
       id: createId(),
-      date: parsedDate.toISOString(),
+      date: date.toISOString(),
       amount,
       category: row.category,
       merchant: row.merchant || "",
@@ -847,16 +874,6 @@ function csvEscape(value) {
   return stringValue;
 }
 
-function switchTab(tabId) {
-  document.querySelectorAll(".tab-button").forEach(button => {
-    button.classList.toggle("active", button.dataset.tab === tabId);
-  });
-
-  document.querySelectorAll(".tab-section").forEach(section => {
-    section.classList.toggle("active", section.id === tabId);
-  });
-}
-
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -864,10 +881,4 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function escapeAttribute(value) {
-  return String(value ?? "")
-    .replaceAll("\\", "\\\\")
-    .replaceAll("'", "\\'");
 }
