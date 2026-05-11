@@ -5,24 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Finance Tracker</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-  <header class="app-header">
+  <header class="hero">
     <div>
       <p class="eyebrow">Personal Finance Dashboard</p>
       <h1>Track spending. Build savings. Stay in control.</h1>
-      <p class="header-subtitle">
-        A simple budgeting dashboard for transactions, category budgets, savings goals, and spending insights.
+      <p class="subtitle">
+        A clean personal finance website for transactions, category budgets, savings goals, and simple financial insights.
       </p>
     </div>
 
     <div class="settings">
-      <button id="settingsButton" class="icon-button" type="button">⚙ Settings</button>
+      <button id="settingsButton" class="settings-button" type="button">Settings</button>
 
       <div id="settingsMenu" class="settings-menu hidden">
-        <button id="themeToggle" type="button">Toggle Dark / Light Mode</button>
+        <button id="themeToggle" type="button">Toggle Dark / Light</button>
         <button id="exportCsvButton" type="button">Export CSV</button>
         <button id="importCsvButton" type="button">Import CSV</button>
         <input id="csvFileInput" type="file" accept=".csv" hidden />
@@ -38,9 +37,8 @@
       <button class="tab-button" data-tab="savings">Savings Plan</button>
     </nav>
 
-    <!-- Dashboard -->
     <section id="dashboard" class="tab-section active">
-      <section class="summary-grid">
+      <div class="summary-grid">
         <article class="summary-card">
           <span>Total Spending</span>
           <strong id="overallTotal">$0.00</strong>
@@ -57,32 +55,22 @@
         </article>
 
         <article class="summary-card">
-          <span>Income Left After Spending</span>
-          <strong id="incomeAfterSpending">$0.00</strong>
+          <span>Income Left</span>
+          <strong id="incomeLeftAfterSpending">$0.00</strong>
         </article>
-      </section>
+      </div>
 
-      <section class="grid two">
+      <div class="grid two">
         <article class="card">
-          <div class="card-header">
-            <div>
-              <h2>Spending Insights</h2>
-              <p>AI-style insights based on your local data.</p>
-            </div>
-          </div>
-
+          <h2>Spending Insights</h2>
           <div id="spendingInsight" class="insight-box">
             Add transactions to see insights.
           </div>
         </article>
 
         <article class="card">
-          <div class="card-header">
-            <div>
-              <h2>Month Filter</h2>
-              <p>Choose which month to review.</p>
-            </div>
-          </div>
+          <h2>Month Filter</h2>
+          <p class="muted">Choose the month and year you want to review.</p>
 
           <div class="form-grid two">
             <div>
@@ -96,21 +84,21 @@
             </div>
           </div>
         </article>
-      </section>
+      </div>
 
-      <section class="grid two">
+      <div class="grid two">
         <article class="card">
-          <h2>Monthly Spending by Category</h2>
-          <canvas id="categoryChart"></canvas>
+          <h2>Monthly Category Chart</h2>
+          <div id="categoryChart" class="chart-list"></div>
         </article>
 
         <article class="card">
           <h2>Budget Progress</h2>
-          <div id="budgetProgressList" class="stack"></div>
+          <div id="dashboardBudgetProgress" class="stack"></div>
         </article>
-      </section>
+      </div>
 
-      <section class="grid three">
+      <div class="grid three">
         <article class="card">
           <h2>Overall by Category</h2>
           <div id="overallCategories" class="stack"></div>
@@ -125,19 +113,14 @@
           <h2>Current Week by Category</h2>
           <div id="weeklyCategories" class="stack"></div>
         </article>
-      </section>
+      </div>
     </section>
 
-    <!-- Transactions -->
     <section id="transactions" class="tab-section">
-      <section class="grid two">
+      <div class="grid two">
         <article class="card">
-          <div class="card-header">
-            <div>
-              <h2 id="transactionFormTitle">Add Transaction</h2>
-              <p>Month and year autofill, but you can change them.</p>
-            </div>
-          </div>
+          <h2 id="transactionFormTitle">Add Transaction</h2>
+          <p class="muted">Month and year autofill automatically, but you can change them.</p>
 
           <form id="transactionForm">
             <input id="editingTransactionId" type="hidden" />
@@ -197,7 +180,7 @@
           <div class="form-grid two">
             <div>
               <label for="searchInput">Search</label>
-              <input id="searchInput" type="text" placeholder="Search category, merchant, or notes" />
+              <input id="searchInput" type="text" placeholder="Category, merchant, or notes" />
             </div>
 
             <div>
@@ -213,7 +196,7 @@
             <button id="clearAllButton" class="danger-button" type="button">Delete All Transactions</button>
           </div>
         </article>
-      </section>
+      </div>
 
       <article class="card">
         <h2>Transaction History</h2>
@@ -236,12 +219,11 @@
       </article>
     </section>
 
-    <!-- Budgets -->
     <section id="budgets" class="tab-section">
-      <section class="grid two">
+      <div class="grid two">
         <article class="card">
           <h2>Monthly Category Budgets</h2>
-          <p class="muted">Set a monthly spending goal for each category.</p>
+          <p class="muted">Set a monthly budget for each spending category.</p>
 
           <form id="budgetForm">
             <div class="form-grid two">
@@ -263,10 +245,10 @@
         <article class="card">
           <h2>Budget Insight</h2>
           <div id="budgetInsight" class="insight-box">
-            Add a budget to see whether you are on track.
+            Add budgets to see whether you are on track.
           </div>
         </article>
-      </section>
+      </div>
 
       <article class="card">
         <h2>Budget List</h2>
@@ -274,13 +256,12 @@
       </article>
     </section>
 
-    <!-- Savings -->
     <section id="savings" class="tab-section">
-      <section class="grid two">
+      <div class="grid two">
         <article class="card">
           <h2>Create Savings Plan</h2>
           <p class="muted">
-            Enter your goal, time frame, and income. The dashboard will compare your savings goal to your actual spending.
+            Enter your savings goal, time frame, and income. The site will compare your savings plan to your spending.
           </p>
 
           <form id="savingsForm">
@@ -306,7 +287,7 @@
         <article class="card">
           <h2>Savings Results</h2>
 
-          <section class="summary-grid savings-summary">
+          <div class="summary-grid savings-results">
             <article class="summary-card">
               <span>Monthly Savings Needed</span>
               <strong id="monthlySavings">$0.00</strong>
@@ -318,10 +299,10 @@
             </article>
 
             <article class="summary-card">
-              <span>Left After Savings</span>
-              <strong id="incomeLeft">$0.00</strong>
+              <span>Income After Savings</span>
+              <strong id="incomeAfterSavings">$0.00</strong>
             </article>
-          </section>
+          </div>
 
           <p>
             <strong>Difficulty:</strong>
@@ -332,12 +313,12 @@
             Enter a savings goal to see your plan.
           </div>
         </article>
-      </section>
+      </div>
     </section>
   </main>
 
   <footer>
-    Your data is saved in this browser using localStorage. Export CSV regularly if you want a backup.
+    Data is saved only in your browser using localStorage. Export CSV regularly if you want a backup.
   </footer>
 
   <script src="script.js"></script>
