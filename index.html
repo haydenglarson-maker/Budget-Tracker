@@ -6,15 +6,18 @@
   <title>Personal Finance Tracker</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Personal Finance Dashboard</p>
-      <h1>Track spending. Build savings. Stay in control.</h1>
-      <p class="subtitle">
-        A clean personal finance website for transactions, category budgets, savings goals, and simple financial insights.
-      </p>
-    </div>
+  <header class="topbar">
+    <div class="brand">Personal Finance Tracker</div>
+
+    <nav class="nav-tabs">
+      <button class="nav-button active" data-tab="dashboard">Dashboard</button>
+      <button class="nav-button" data-tab="transactions">Transactions</button>
+      <button class="nav-button" data-tab="budgets">Budgets</button>
+      <button class="nav-button" data-tab="savings">Savings Plan</button>
+      <button class="nav-button" data-tab="compare">Compare</button>
+    </nav>
 
     <div class="settings">
       <button id="settingsButton" class="settings-button" type="button">Settings</button>
@@ -29,66 +32,79 @@
   </header>
 
   <main class="container">
-    <nav class="tabs">
-      <button class="tab-button active" data-tab="dashboard">Dashboard</button>
-      <button class="tab-button" data-tab="transactions">Transactions</button>
-      <button class="tab-button" data-tab="budgets">Budgets</button>
-      <button class="tab-button" data-tab="savings">Savings Plan</button>
-    </nav>
-
     <section id="dashboard" class="tab-section active">
+      <div class="section-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Review spending, income, savings, and category insights.</p>
+        </div>
+
+        <div class="period-toggle">
+          <button class="period-button active" data-period="weekly">Weekly</button>
+          <button class="period-button" data-period="monthly">Monthly</button>
+          <button class="period-button" data-period="yearly">Yearly</button>
+        </div>
+      </div>
+
+      <div class="filter-card">
+        <div class="form-grid three">
+          <div>
+            <label for="filterMonth">Month</label>
+            <select id="filterMonth"></select>
+          </div>
+
+          <div>
+            <label for="filterYear">Year</label>
+            <input id="filterYear" type="number" min="2000" max="2100" />
+          </div>
+
+          <div>
+            <label for="periodLabel">Current View</label>
+            <input id="periodLabel" type="text" value="Weekly" disabled />
+          </div>
+        </div>
+      </div>
+
       <div class="summary-grid">
         <article class="summary-card">
-          <span>Total Spending</span>
+          <span id="spendingSummaryLabel">Spending</span>
+          <strong id="periodSpendingTotal">$0.00</strong>
+        </article>
+
+        <article class="summary-card">
+          <span id="incomeSummaryLabel">Income</span>
+          <strong id="periodIncomeTotal">$0.00</strong>
+        </article>
+
+        <article class="summary-card">
+          <span>Income Minus Spending</span>
+          <strong id="periodNetTotal">$0.00</strong>
+        </article>
+
+        <article class="summary-card">
+          <span>Total Spending Overall</span>
           <strong id="overallTotal">$0.00</strong>
         </article>
+      </div>
 
-        <article class="summary-card">
-          <span>Selected Month</span>
-          <strong id="monthlyTotal">$0.00</strong>
+      <div class="grid two">
+        <article class="card">
+          <h2>Insights</h2>
+          <div id="dashboardInsight" class="insight-box">
+            Add transactions and income to see insights.
+          </div>
         </article>
 
-        <article class="summary-card">
-          <span>Current Week</span>
-          <strong id="weeklyTotal">$0.00</strong>
-        </article>
-
-        <article class="summary-card">
-          <span>Income Left</span>
-          <strong id="incomeLeftAfterSpending">$0.00</strong>
+        <article class="card">
+          <h2>Spending by Category</h2>
+          <div id="periodCategoryChart" class="chart-list"></div>
         </article>
       </div>
 
       <div class="grid two">
         <article class="card">
-          <h2>Spending Insights</h2>
-          <div id="spendingInsight" class="insight-box">
-            Add transactions to see insights.
-          </div>
-        </article>
-
-        <article class="card">
-          <h2>Month Filter</h2>
-          <p class="muted">Choose the month and year you want to review.</p>
-
-          <div class="form-grid two">
-            <div>
-              <label for="filterMonth">Month</label>
-              <select id="filterMonth"></select>
-            </div>
-
-            <div>
-              <label for="filterYear">Year</label>
-              <input id="filterYear" type="number" min="2000" max="2100" />
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <div class="grid two">
-        <article class="card">
-          <h2>Monthly Category Chart</h2>
-          <div id="categoryChart" class="chart-list"></div>
+          <h2>Income by Category</h2>
+          <div id="periodIncomeCategories" class="stack"></div>
         </article>
 
         <article class="card">
@@ -96,30 +112,19 @@
           <div id="dashboardBudgetProgress" class="stack"></div>
         </article>
       </div>
-
-      <div class="grid three">
-        <article class="card">
-          <h2>Overall by Category</h2>
-          <div id="overallCategories" class="stack"></div>
-        </article>
-
-        <article class="card">
-          <h2>Selected Month by Category</h2>
-          <div id="monthlyCategories" class="stack"></div>
-        </article>
-
-        <article class="card">
-          <h2>Current Week by Category</h2>
-          <div id="weeklyCategories" class="stack"></div>
-        </article>
-      </div>
     </section>
 
     <section id="transactions" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h1>Transactions</h1>
+          <p>Add spending and income entries.</p>
+        </div>
+      </div>
+
       <div class="grid two">
         <article class="card">
-          <h2 id="transactionFormTitle">Add Transaction</h2>
-          <p class="muted">Month and year autofill automatically, but you can change them.</p>
+          <h2 id="transactionFormTitle">Add Spending</h2>
 
           <form id="transactionForm">
             <input id="editingTransactionId" type="hidden" />
@@ -148,7 +153,7 @@
               </div>
 
               <div>
-                <label for="category">Category</label>
+                <label for="category">Spending Category</label>
                 <input id="category" list="categoryOptions" placeholder="Example: Food" required />
                 <datalist id="categoryOptions"></datalist>
               </div>
@@ -167,14 +172,64 @@
             </div>
 
             <div class="button-row">
-              <button class="primary-button" type="submit">Save Transaction</button>
+              <button class="primary-button" type="submit">Save Spending</button>
               <button id="cancelEditButton" class="secondary-button hidden" type="button">Cancel Edit</button>
             </div>
           </form>
         </article>
 
         <article class="card">
-          <h2>Search & Filter</h2>
+          <h2>Add Income</h2>
+
+          <form id="incomeForm">
+            <div class="form-grid three">
+              <div>
+                <label for="incomeDay">Day</label>
+                <input id="incomeDay" type="number" min="1" max="31" required />
+              </div>
+
+              <div>
+                <label for="incomeMonth">Month</label>
+                <select id="incomeMonth"></select>
+              </div>
+
+              <div>
+                <label for="incomeYear">Year</label>
+                <input id="incomeYear" type="number" min="2000" max="2100" required />
+              </div>
+            </div>
+
+            <div class="form-grid two">
+              <div>
+                <label for="incomeAmount">Amount Earned</label>
+                <input id="incomeAmount" type="number" min="0.01" step="0.01" placeholder="Example: 500" required />
+              </div>
+
+              <div>
+                <label for="incomeCategory">Income Category</label>
+                <select id="incomeCategory" required>
+                  <option value="">Choose source</option>
+                  <option>BYU Online</option>
+                  <option>Side Hustle</option>
+                  <option>Gifts</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label for="incomeNotes">Notes</label>
+              <input id="incomeNotes" type="text" placeholder="Optional" />
+            </div>
+
+            <button class="primary-button" type="submit">Save Income</button>
+          </form>
+        </article>
+      </div>
+
+      <div class="grid two">
+        <article class="card">
+          <h2>Search Spending</h2>
 
           <div class="form-grid two">
             <div>
@@ -192,13 +247,18 @@
 
           <div class="button-row">
             <button id="clearFiltersButton" class="secondary-button" type="button">Clear Filters</button>
-            <button id="clearAllButton" class="danger-button" type="button">Delete All Transactions</button>
+            <button id="clearAllButton" class="danger-button" type="button">Delete All Spending</button>
           </div>
+        </article>
+
+        <article class="card">
+          <h2>Income Summary</h2>
+          <div id="incomeSummaryList" class="stack"></div>
         </article>
       </div>
 
       <article class="card">
-        <h2>Transaction History</h2>
+        <h2>Spending History</h2>
 
         <div class="table-wrap">
           <table>
@@ -216,13 +276,38 @@
           </table>
         </div>
       </article>
+
+      <article class="card">
+        <h2>Income History</h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Source</th>
+                <th>Notes</th>
+                <th class="right">Amount</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="incomeTable"></tbody>
+          </table>
+        </div>
+      </article>
     </section>
 
     <section id="budgets" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h1>Budgets</h1>
+          <p>Set monthly category limits and track progress.</p>
+        </div>
+      </div>
+
       <div class="grid two">
         <article class="card">
           <h2>Monthly Category Budgets</h2>
-          <p class="muted">Set a monthly budget for each spending category.</p>
 
           <form id="budgetForm">
             <div class="form-grid two">
@@ -256,12 +341,16 @@
     </section>
 
     <section id="savings" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h1>Savings Plan</h1>
+          <p>Build a goal and compare it to your actual income and spending.</p>
+        </div>
+      </div>
+
       <div class="grid two">
         <article class="card">
           <h2>Create Savings Plan</h2>
-          <p class="muted">
-            Enter your savings goal, time frame, and income. The site will compare your savings plan to your spending.
-          </p>
 
           <form id="savingsForm">
             <div>
@@ -272,11 +361,6 @@
             <div>
               <label for="timeFrame">Time frame in months</label>
               <input id="timeFrame" type="number" min="1" step="1" placeholder="Example: 6" required />
-            </div>
-
-            <div>
-              <label for="monthlyIncome">Monthly income</label>
-              <input id="monthlyIncome" type="number" min="1" step="0.01" placeholder="Example: 2500" required />
             </div>
 
             <button class="primary-button" type="submit">Build Savings Plan</button>
@@ -298,8 +382,8 @@
             </article>
 
             <article class="summary-card">
-              <span>Income After Savings</span>
-              <strong id="incomeAfterSavings">$0.00</strong>
+              <span>Monthly Cushion After Spending</span>
+              <strong id="savingsCushion">$0.00</strong>
             </article>
           </div>
 
@@ -314,10 +398,43 @@
         </article>
       </div>
     </section>
+
+    <section id="compare" class="tab-section">
+      <div class="section-header">
+        <div>
+          <h1>Compare</h1>
+          <p>Compare income and spending across weeks, months, years, and categories.</p>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <article class="card">
+          <h2>Week to Week</h2>
+          <div id="weekComparison" class="stack"></div>
+        </article>
+
+        <article class="card">
+          <h2>Month to Month</h2>
+          <div id="monthComparison" class="stack"></div>
+        </article>
+      </div>
+
+      <div class="grid two">
+        <article class="card">
+          <h2>Category Comparison</h2>
+          <div id="categoryComparison" class="stack"></div>
+        </article>
+
+        <article class="card">
+          <h2>Income vs. Spending by Month</h2>
+          <div id="incomeSpendingComparison" class="stack"></div>
+        </article>
+      </div>
+    </section>
   </main>
 
   <footer>
-    Data is saved only in your browser using localStorage. Export CSV regularly if you want a backup.
+    Data is saved only in your browser. Export CSV regularly if you want a backup.
   </footer>
 
   <script src="script.js"></script>
